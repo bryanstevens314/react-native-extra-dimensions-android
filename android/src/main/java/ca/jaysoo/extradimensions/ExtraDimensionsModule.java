@@ -16,6 +16,8 @@ import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.LifecycleEventListener;
 import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
+import com.facebook.react.bridge.Callback;
+import com.facebook.react.bridge.ReactMethod;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -52,94 +54,89 @@ public class ExtraDimensionsModule extends ReactContextBaseJavaModule implements
 
     }
 
-    @Override
-    public Map<String, Object> getConstants() {
-        final Map<String, Object> constants =  new HashMap<>();
-
-        final Context ctx = getReactApplicationContext();
-        final DisplayMetrics metrics = ctx.getResources().getDisplayMetrics();
-
-        // Get the real display metrics if we are using API level 17 or higher.
-        // The real metrics include system decor elements (e.g. soft menu bar).
-        //
-        // See: http://developer.android.com/reference/android/view/Display.html#getRealMetrics(android.util.DisplayMetrics)
-        if (Build.VERSION.SDK_INT >= 17) {
-            Display display = ((WindowManager) mReactContext.getSystemService(Context.WINDOW_SERVICE))
-                    .getDefaultDisplay();
-            try {
-                Display.class.getMethod("getRealMetrics", DisplayMetrics.class).invoke(display, metrics);
-            } catch (InvocationTargetException e) {
-            } catch (IllegalAccessException e) {
-            } catch (NoSuchMethodException e) {
-            }
-        }
-
-        constants.put("REAL_WINDOW_HEIGHT", getRealHeight(metrics));
-        constants.put("REAL_WINDOW_WIDTH", getRealWidth(metrics));
-        constants.put("STATUS_BAR_HEIGHT", getStatusBarHeight(metrics));
-        constants.put("SOFT_MENU_BAR_HEIGHT", getSoftMenuBarHeight(metrics));
-        constants.put("SMART_BAR_HEIGHT", getSmartBarHeight(metrics));
-        constants.put("SOFT_MENU_BAR_ENABLED", hasPermanentMenuKey());
-
-        return constants;
-    }
-
     private boolean hasPermanentMenuKey() {
         final Context ctx = getReactApplicationContext();
         int id = ctx.getResources().getIdentifier("config_showNavigationBar", "bool", "android");
         return !(id > 0 && ctx.getResources().getBoolean(id));
     }
 
-    private float getStatusBarHeight(DisplayMetrics metrics) {
+    @ReactMethod
+    public void isSoftMenuBarEnabled(final Callback callback) {
         final Context ctx = getReactApplicationContext();
+        final DisplayMetrics metrics = ctx.getResources().getDisplayMetrics();
         final int heightResId = ctx.getResources().getIdentifier("status_bar_height", "dimen", "android");
-        return
-          heightResId > 0
+        float height = heightResId > 0
             ? ctx.getResources().getDimensionPixelSize(heightResId) / metrics.density
             : 0;
+        callback.invoke(null, height);
     }
 
-    private float getSoftMenuBarHeight(DisplayMetrics metrics) {
+    @ReactMethod
+    public void getStatusBarHeight(final Callback callback) {
+        final Context ctx = getReactApplicationContext();
+        final DisplayMetrics metrics = ctx.getResources().getDisplayMetrics();
+        final int heightResId = ctx.getResources().getIdentifier("status_bar_height", "dimen", "android");
+        float height = heightResId > 0
+            ? ctx.getResources().getDimensionPixelSize(heightResId) / metrics.density
+            : 0;
+        callback.invoke(null, height);
+    }
+
+    @ReactMethod
+    public void getSoftMenuBarHeight(final Callback callback) {
         if(hasPermanentMenuKey()) {
-            return 0;
+            callback.invoke(null, 0);
+            return;
         }
         final Context ctx = getReactApplicationContext();
+        final DisplayMetrics metrics = ctx.getResources().getDisplayMetrics();
         final int heightResId = ctx.getResources().getIdentifier("navigation_bar_height", "dimen", "android");
-        return
-          heightResId > 0
+        float height = heightResId > 0
             ? ctx.getResources().getDimensionPixelSize(heightResId) / metrics.density
             : 0;
+        callback.invoke(null, height);
     }
 
-    private float getRealHeight(DisplayMetrics metrics) {
-        return metrics.heightPixels / metrics.density;
+    @ReactMethod
+    public void getRealHeight(final Callback callback) {
+        final Context ctx = getReactApplicationContext();
+        final DisplayMetrics metrics = ctx.getResources().getDisplayMetrics();
+        float height = metrics.heightPixels / metrics.density;
+        callback.invoke(null, height);
     }
 
-    private float getRealWidth(DisplayMetrics metrics) {
-        return metrics.widthPixels / metrics.density;
+    @ReactMethod
+    public void getRealWidth(final Callback callback) {
+        final Context ctx = getReactApplicationContext();
+        final DisplayMetrics metrics = ctx.getResources().getDisplayMetrics();
+        float height = metrics.widthPixels / metrics.density;
+        callback.invoke(null, height);
     }
 
-    // 获取魅族SmartBar高度
-    private float getSmartBarHeight(DisplayMetrics metrics) {
-        final Context context = getReactApplicationContext();
+    @ReactMethod
+    public void getSmartBarHeight(final Callback callback) {
+        final Context ctx = getReactApplicationContext();
+        final DisplayMetrics metrics = ctx.getResources().getDisplayMetrics();
         final boolean isMeiZu = Build.MANUFACTURER.equals("Meizu");
  
-        final boolean autoHideSmartBar = Settings.System.getInt(context.getContentResolver(),
+        final boolean autoHideSmartBar = Settings.System.getInt(ctx.getContentResolver(),
             "mz_smartbar_auto_hide", 0) == 1;
  
         if (!isMeiZu || autoHideSmartBar) {
-            return 0;
+            callback.invoke(null, 0);
         }
         try {
             Class c = Class.forName("com.android.internal.R$dimen");
             Object obj = c.newInstance();
             Field field = c.getField("mz_action_button_min_height");
-            int height = Integer.parseInt(field.get(obj).toString());
-            return context.getResources().getDimensionPixelSize(height) / metrics.density;
+            int h = Integer.parseInt(field.get(obj).toString());
+            float height = ctx.getResources().getDimensionPixelSize(h) / metrics.density;
+            callback.invoke(null, height);
         } catch (Throwable e) { // 不自动隐藏smartbar同时又没有smartbar高度字段供访问，取系统navigationbar的高度
-            return getNormalNavigationBarHeight(context) / metrics.density;
+            float height = getNormalNavigationBarHeight(ctx) / metrics.density;
+            callback.invoke(null, height);
         }
-        //return getNormalNavigationBarHeight(context) / metrics.density;
+        //return getNormalNavigationBarHeight(ctx) / metrics.density;
     }
  
     protected static float getNormalNavigationBarHeight(final Context ctx) {
