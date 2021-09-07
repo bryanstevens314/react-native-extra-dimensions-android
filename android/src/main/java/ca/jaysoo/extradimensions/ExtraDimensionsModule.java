@@ -68,7 +68,7 @@ public class ExtraDimensionsModule extends ReactContextBaseJavaModule implements
         float height = heightResId > 0
             ? ctx.getResources().getDimensionPixelSize(heightResId) / metrics.density
             : 0;
-        callback.invoke(null, height);
+        callback.invoke(height);
     }
 
     @ReactMethod
@@ -79,13 +79,13 @@ public class ExtraDimensionsModule extends ReactContextBaseJavaModule implements
         float height = heightResId > 0
             ? ctx.getResources().getDimensionPixelSize(heightResId) / metrics.density
             : 0;
-        callback.invoke(null, height);
+        callback.invoke(height);
     }
 
     @ReactMethod
     public void getSoftMenuBarHeight(final Callback callback) {
         if(hasPermanentMenuKey()) {
-            callback.invoke(null, 0);
+            callback.invoke(0);
             return;
         }
         final Context ctx = getReactApplicationContext();
@@ -94,7 +94,7 @@ public class ExtraDimensionsModule extends ReactContextBaseJavaModule implements
         float height = heightResId > 0
             ? ctx.getResources().getDimensionPixelSize(heightResId) / metrics.density
             : 0;
-        callback.invoke(null, height);
+        callback.invoke(height);
     }
 
     @ReactMethod
@@ -102,7 +102,7 @@ public class ExtraDimensionsModule extends ReactContextBaseJavaModule implements
         final Context ctx = getReactApplicationContext();
         final DisplayMetrics metrics = ctx.getResources().getDisplayMetrics();
         float height = metrics.heightPixels / metrics.density;
-        callback.invoke(null, height);
+        callback.invoke(height);
     }
 
     @ReactMethod
@@ -110,7 +110,7 @@ public class ExtraDimensionsModule extends ReactContextBaseJavaModule implements
         final Context ctx = getReactApplicationContext();
         final DisplayMetrics metrics = ctx.getResources().getDisplayMetrics();
         float height = metrics.widthPixels / metrics.density;
-        callback.invoke(null, height);
+        callback.invoke(height);
     }
 
     @ReactMethod
@@ -123,7 +123,7 @@ public class ExtraDimensionsModule extends ReactContextBaseJavaModule implements
             "mz_smartbar_auto_hide", 0) == 1;
  
         if (!isMeiZu || autoHideSmartBar) {
-            callback.invoke(null, 0);
+            callback.invoke(0);
         }
         try {
             Class c = Class.forName("com.android.internal.R$dimen");
@@ -131,10 +131,10 @@ public class ExtraDimensionsModule extends ReactContextBaseJavaModule implements
             Field field = c.getField("mz_action_button_min_height");
             int h = Integer.parseInt(field.get(obj).toString());
             float height = ctx.getResources().getDimensionPixelSize(h) / metrics.density;
-            callback.invoke(null, height);
+            callback.invoke(height);
         } catch (Throwable e) { // 不自动隐藏smartbar同时又没有smartbar高度字段供访问，取系统navigationbar的高度
             float height = getNormalNavigationBarHeight(ctx) / metrics.density;
-            callback.invoke(null, height);
+            callback.invoke(height);
         }
         //return getNormalNavigationBarHeight(ctx) / metrics.density;
     }
